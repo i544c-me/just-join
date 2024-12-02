@@ -1,32 +1,19 @@
-import { createSignal } from 'solid-js';
-import solidLogo from '@/assets/solid.svg';
-import wxtLogo from '/wxt.svg';
+import { Hourglass } from 'lucide-solid';
 
 function App() {
-  const [count, setCount] = createSignal(0);
-
   return (
     <>
       <div>
-        <a href="https://wxt.dev" target="_blank">
-          <img src={wxtLogo} class="logo" alt="WXT logo" />
-        </a>
-        <a href="https://solidjs.com" target="_blank">
-          <img src={solidLogo} class="logo solid" alt="Solid logo" />
-        </a>
+        <h1 class="text-2xl">Just join!</h1>
+        <div class="stat">
+          <div class="stat-figure text-secondary">
+            <Hourglass />
+          </div>
+          <div class="stat-title">今の状態</div>
+          <div class="stat-value text-primary">待機中...</div>
+          <div class="stat-desc">オンラインになるのを待っています</div>
+        </div>
       </div>
-      <h1>WXT + Solid</h1>
-      <div class="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count()}
-        </button>
-        <p>
-          Edit <code>popup/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p class="read-the-docs">
-        Click on the WXT and Solid logos to learn more
-      </p>
     </>
   );
 }
