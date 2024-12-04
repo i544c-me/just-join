@@ -4,4 +4,8 @@ import { defineConfig } from 'wxt';
 export default defineConfig({
   extensionApi: 'chrome',
   modules: ['@wxt-dev/module-solid'],
+  manifest: {
+    host_permissions: ['https://vrchat.com/*'],
+    permissions: ['cookies'],
+  }
 });
