@@ -8,7 +8,25 @@ type EventData = {
 type EventContent = {
   userId: string;
   worldId: string;
-  location: string;
+  location: `wrld_${string}` | 'traveling' | 'private';
+}
+
+function listenUser(event: MessageEvent, userId: string) {
+  const data: EventData = JSON.parse(event.data, (_key, value) => {
+    try {
+      return JSON.parse(value)
+    } catch {
+      return value;
+    }
+  });
+  if (data.type !== 'friend-location' && data.content.userId !== userId) return;
+
+  if (data.content.location.startsWith("wrld_")) {
+    browser.runtime.sendMessage({
+      method: 'friend-location',
+      content: data.content,
+    });
+  }
 }
 
 
@@ -27,18 +45,6 @@ export default defineBackground(async () => {
 
   socket.addEventListener('open', () => console.log('open') );
   socket.addEventListener('close', () => console.log('close') );
-  socket.addEventListener('message', event => {
-    const data: EventData = JSON.parse(event.data, (_key, value) => {
-      try {
-        return JSON.parse(value)
-      } catch {
-        return value;
-      }
-    });
-    if (data.type !== 'friend-location') return;
-
-    console.log(data);
-  });
 
   browser.runtime.onMessage.addListener((request, _sender, sendResponse) => {
     switch (request.method) {
@@ -49,6 +55,10 @@ export default defineBackground(async () => {
         client.searchUser(request.content).then(users => {
           sendResponse(users);
         });
+        break;
+      case 'listenUser':
+        socket.removeEventListener('message', e => listenUser(e, request.content));
+        socket.addEventListener('message', e => listenUser(e, request.content));
         break;
       default:
         console.error('unknown method...');
