@@ -1,4 +1,5 @@
-import VRChat, { VRCEvent } from './vrchat';
+import VRChat, { VRCEvent } from './lib/vrchat';
+import { MessageBackground, MessagePopup } from './lib/common';
 
 function listenUser(event: MessageEvent, userId: string) {
   const data: VRCEvent = JSON.parse(event.data, (_key, value) => {
@@ -8,16 +9,18 @@ function listenUser(event: MessageEvent, userId: string) {
       return value;
     }
   });
-  if (data.type !== 'friend-location' && data.content.userId !== userId) return;
+  if (data.type !== 'friend-location' || data.content.userId !== userId) return;
 
-  if (data.content.location.startsWith("wrld_")) {
-    browser.runtime.sendMessage({
-      method: 'friend-location',
-      content: data.content,
+  const newLocation = data.content.location || data.content.travelingToLocation;
+  console.log('newLocation', newLocation);
+
+  if (newLocation) {
+    browser.runtime.sendMessage<MessagePopup>({
+      method: 'updateLocation',
+      content: newLocation,
     });
   }
 }
-
 
 export default defineBackground(async () => {
   console.log('Hello background!', { id: browser.runtime.id });
@@ -35,22 +38,23 @@ export default defineBackground(async () => {
   socket.addEventListener('open', () => console.log('open') );
   socket.addEventListener('close', () => console.log('close') );
 
-  browser.runtime.onMessage.addListener((request, _sender, sendResponse) => {
+  browser.runtime.onMessage.addListener((request: MessageBackground, _sender, sendResponse) => {
     switch (request.method) {
       case 'searchUser':
         console.log('searchUser: ', request.content);
         // NOTE: ここを async で書くことができないので、渋々 then を使っている
         // https://developer.mozilla.org/ja/docs/Mozilla/Add-ons/WebExtensions/API/runtime/onMessage#listener
-        client.searchUser(request.content).then(users => {
+        client.searchUser(request.content as string).then(users => {
           sendResponse(users);
         });
         break;
       case 'listenUser':
-        socket.removeEventListener('message', e => listenUser(e, request.content));
-        socket.addEventListener('message', e => listenUser(e, request.content));
+        socket.removeEventListener('message', e => listenUser(e, request.content as string));
+        socket.addEventListener('message', e => listenUser(e, request.content as string));
         break;
       default:
         console.error('unknown method...');
+        return request.method satisfies never;
     }
     return true;
   })

@@ -1,11 +1,19 @@
-import { VRCUser } from '../vrchat';
+import { VRCUser } from '../lib/vrchat';
+import { MessageBackground, MessagePopup } from '../lib/common';
 
 function App() {
   const [targetUser, setTargetUser] = createSignal({} as VRCUser);
   let inputUsername = document.createElement('input');
 
-  const onMessage = (request: VRCUser) => {
+  const onMessage = (request: MessagePopup) => {
     console.log('onMessage', request)
+
+    switch (request.method) {
+      case 'updateLocation':
+        break;
+      default:
+        return request.method satisfies never;
+    }
   }
 
   onMount(async () => {
@@ -25,10 +33,10 @@ function App() {
 
   const SearchUser = async () => {
     const username = inputUsername.value;
-    const users = await browser.runtime.sendMessage<any, VRCUser[]>({ method: 'searchUser', content: username });
+    const users = await browser.runtime.sendMessage<MessageBackground, VRCUser[]>({ method: 'searchUser', content: username });
     if (users.length > 0) {
       setTargetUser(users[0]);
-      await browser.runtime.sendMessage({ method: 'listenUser', content: users[0].userId })
+      await browser.runtime.sendMessage<MessageBackground>({ method: 'listenUser', content: users[0].id })
     } else {
       setTargetUser({} as VRCUser);
     }

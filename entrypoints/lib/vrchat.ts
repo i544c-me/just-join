@@ -3,8 +3,8 @@ type Params = {
 }
 
 export type VRCUser = {
+  id: string;
   isFriend: boolean;
-  userId: string;
   displayName: string;
   currentAvatarImageUrl: string;
   location: string;
@@ -16,6 +16,7 @@ export type VRCEvent = {
     userId: string;
     worldId: string;
     location: `wrld_${string}` | 'traveling' | 'private';
+    travelingToLocation: `wrld_${string}` | '';
   }
 }
 
