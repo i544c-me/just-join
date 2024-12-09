@@ -2,12 +2,21 @@ type Params = {
   authToken: string;
 }
 
-export type User = {
+export type VRCUser = {
   isFriend: boolean;
   userId: string;
   displayName: string;
   currentAvatarImageUrl: string;
   location: string;
+}
+
+export type VRCEvent = {
+  type: string | 'friend-location';
+  content: {
+    userId: string;
+    worldId: string;
+    location: `wrld_${string}` | 'traveling' | 'private';
+  }
 }
 
 class VRChat {
@@ -17,7 +26,7 @@ class VRChat {
     this.authToken = params.authToken;
   }
 
-  async searchUser(username: string): Promise<User[]> {
+  async searchUser(username: string): Promise<VRCUser[]> {
     if (username === "") return [];
 
     const res = await fetch(`https://vrchat.com/api/1/users?search=${username}`, {

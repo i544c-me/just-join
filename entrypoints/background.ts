@@ -1,18 +1,7 @@
-import VRChat from './vrchat';
-
-type EventData = {
-  type: string | 'friend-location';
-  content: EventContent;
-}
-
-type EventContent = {
-  userId: string;
-  worldId: string;
-  location: `wrld_${string}` | 'traveling' | 'private';
-}
+import VRChat, { VRCEvent } from './vrchat';
 
 function listenUser(event: MessageEvent, userId: string) {
-  const data: EventData = JSON.parse(event.data, (_key, value) => {
+  const data: VRCEvent = JSON.parse(event.data, (_key, value) => {
     try {
       return JSON.parse(value)
     } catch {

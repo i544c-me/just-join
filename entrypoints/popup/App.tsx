@@ -1,4 +1,4 @@
-import { User as VRCUser } from '../vrchat';
+import { VRCUser } from '../vrchat';
 
 function App() {
   const [targetUser, setTargetUser] = createSignal({} as VRCUser);
@@ -25,7 +25,7 @@ function App() {
 
   const SearchUser = async () => {
     const username = inputUsername.value;
-    const users = await browser.runtime.sendMessage({ method: 'searchUser', content: username });
+    const users = await browser.runtime.sendMessage<any, VRCUser[]>({ method: 'searchUser', content: username });
     if (users.length > 0) {
       setTargetUser(users[0]);
       await browser.runtime.sendMessage({ method: 'listenUser', content: users[0].userId })
