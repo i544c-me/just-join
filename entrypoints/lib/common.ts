@@ -5,6 +5,12 @@ export type MessageBackground = {
 
 export type MessagePopup = {
   method: 'updateLocation';
-  content: object | string;
+  content: {
+    location: `wrld_${string}` | 'traveling' | 'private';
+    world: {
+      name: string;
+      description: string;
+    },
+  },
 }
 

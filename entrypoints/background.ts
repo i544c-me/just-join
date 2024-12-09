@@ -9,21 +9,26 @@ function listenUser(event: MessageEvent, userId: string) {
       return value;
     }
   });
+  console.log(data);
   if (data.type !== 'friend-location' || data.content.userId !== userId) return;
 
-  const newLocation = data.content.location || data.content.travelingToLocation;
-  console.log('newLocation', newLocation);
+  const newLocation = data.content.travelingToLocation || data.content.location;
 
   if (newLocation) {
     browser.runtime.sendMessage<MessagePopup>({
       method: 'updateLocation',
-      content: newLocation,
+      content: {
+        location: newLocation,
+        world: data.content.world,
+      },
     });
   }
 }
 
 export default defineBackground(async () => {
   console.log('Hello background!', { id: browser.runtime.id });
+
+  let prevlistenUserController: AbortController;
 
   const authCookie = await browser.cookies.get({ name: 'auth', url: 'https://vrchat.com/' });
   const authToken = authCookie?.value || '';
@@ -49,8 +54,10 @@ export default defineBackground(async () => {
         });
         break;
       case 'listenUser':
-        socket.removeEventListener('message', e => listenUser(e, request.content as string));
-        socket.addEventListener('message', e => listenUser(e, request.content as string));
+        if (prevlistenUserController) prevlistenUserController.abort();
+        const newListenerUserController = new AbortController();
+        socket.addEventListener('message', e => listenUser(e, request.content as string), { signal: newListenerUserController.signal });
+        prevlistenUserController = newListenerUserController;
         break;
       default:
         console.error('unknown method...');

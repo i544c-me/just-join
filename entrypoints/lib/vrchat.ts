@@ -7,7 +7,7 @@ export type VRCUser = {
   isFriend: boolean;
   displayName: string;
   currentAvatarImageUrl: string;
-  location: string;
+  location: `wrld_${string}` | 'traveling' | 'private';
 }
 
 export type VRCEvent = {
@@ -15,6 +15,10 @@ export type VRCEvent = {
   content: {
     userId: string;
     worldId: string;
+    world: {
+      name: string,
+      description: string,
+    },
     location: `wrld_${string}` | 'traveling' | 'private';
     travelingToLocation: `wrld_${string}` | '';
   }

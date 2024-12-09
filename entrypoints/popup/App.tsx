@@ -1,8 +1,19 @@
 import { VRCUser } from '../lib/vrchat';
 import { MessageBackground, MessagePopup } from '../lib/common';
 
+type User = {
+  id: string,
+  displayName: string;
+  image: string;
+  location: string;
+  world?: {
+    name?: string;
+    description?: string;
+  };
+};
+
 function App() {
-  const [targetUser, setTargetUser] = createSignal({} as VRCUser);
+  const [targetUser, setTargetUser] = createSignal({} as User);
   let inputUsername = document.createElement('input');
 
   const onMessage = (request: MessagePopup) => {
@@ -10,6 +21,21 @@ function App() {
 
     switch (request.method) {
       case 'updateLocation':
+        if (request.content.location === 'private') {
+          setTargetUser({
+            ...targetUser(),
+            world: {},
+          });
+        } else {
+          setTargetUser({
+            ...targetUser(),
+            location: request.content.location,
+            world: {
+              name: request.content.world.name,
+              description: request.content.world.description,
+            },
+          });
+        }
         break;
       default:
         return request.method satisfies never;
@@ -35,10 +61,16 @@ function App() {
     const username = inputUsername.value;
     const users = await browser.runtime.sendMessage<MessageBackground, VRCUser[]>({ method: 'searchUser', content: username });
     if (users.length > 0) {
-      setTargetUser(users[0]);
+      const user = users[0];
+      setTargetUser({
+        id: user.id,
+        displayName: user.displayName,
+        image: user.currentAvatarImageUrl,
+        location: user.location,
+      });
       await browser.runtime.sendMessage<MessageBackground>({ method: 'listenUser', content: users[0].id })
     } else {
-      setTargetUser({} as VRCUser);
+      setTargetUser({} as User);
     }
   };
 
@@ -53,17 +85,7 @@ function App() {
 
         <Show when={!targetUser().displayName}>
           <div role="alert" class="alert alert-warning">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-6 w-6 shrink-0 stroke-current"
-              fill="none"
-              viewBox="0 0 24 24">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
+            <span class="text-2xl">⚠</span>
             <span>まず検索してください！</span>
           </div>
         </Show>
@@ -71,7 +93,7 @@ function App() {
         <Show when={targetUser().displayName}>
           <div class="avatar online">
             <div class="w-12 rounded-full">
-              <img src={targetUser().currentAvatarImageUrl} />
+              <img src={targetUser().image} />
             </div>
           </div>
           <p>{targetUser().displayName}</p>
@@ -81,8 +103,8 @@ function App() {
               <span>⏳</span>
             </div>
             <div class="stat-title">今の状態</div>
-            <div class="stat-value text-primary">待機中...</div>
-            <div class="stat-desc">ジョイン可能になるのを待っています</div>
+            <div class="stat-value text-primary">{targetUser().world?.name ?? '待機中...'}</div>
+            <div class="stat-desc">{targetUser().world?.name ? 'ジョイン可能です！' : 'ジョイン可能になるのを待っています'}</div>
           </div>
         </Show>
       </div>
