@@ -11,7 +11,7 @@ export type VRCUser = {
 }
 
 export type VRCEvent = {
-  type: string | 'friend-location';
+  type: 'friend-location' | 'something';
   content: {
     userId: string;
     worldId: string;
@@ -42,6 +42,21 @@ class VRChat {
     });
     return await res.json();
   }
+
+  async inviteMe(friendLocation: string) {
+    if (friendLocation === "") return;
+
+    await fetch(`https://vrchat.com/api/1/invite/myself/to/${friendLocation}`, {
+      mode: 'no-cors',
+      method: 'POST',
+      headers: {
+        Cookie: `auth=${this.authToken}`,
+      },
+    });
+  }
+
+  // TODO: 良い感じに WebSocket のイベントのコールバックを受け付けたい
+  // callback を受け付ける関数とか
 }
 
 export default VRChat;

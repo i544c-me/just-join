@@ -1,6 +1,8 @@
 import VRChat, { VRCEvent } from './lib/vrchat';
 import { MessageBackground, MessagePopup } from './lib/common';
 
+let client: VRChat;
+
 function listenUser(event: MessageEvent, userId: string) {
   const data: VRCEvent = JSON.parse(event.data, (_key, value) => {
     try {
@@ -9,16 +11,18 @@ function listenUser(event: MessageEvent, userId: string) {
       return value;
     }
   });
-  console.log(data);
+  //console.log(data);
   if (data.type !== 'friend-location' || data.content.userId !== userId) return;
 
-  const newLocation = data.content.travelingToLocation || data.content.location;
+  const friendLocation = data.content.travelingToLocation || data.content.location;
 
-  if (newLocation) {
+  if (friendLocation) {
+    client.inviteMe(friendLocation);
+
     browser.runtime.sendMessage<MessagePopup>({
       method: 'updateLocation',
       content: {
-        location: newLocation,
+        location: friendLocation,
         world: data.content.world,
       },
     });
@@ -36,8 +40,9 @@ export default defineBackground(async () => {
     // TODO: VRChat でログインするようにユーザーに通知する
   }
 
-  const client = new VRChat({ authToken });
+  client = new VRChat({ authToken });
 
+  // TODO: WebSocket の実装は VRChat lib に移す
   const socket = new WebSocket(`wss://pipeline.vrchat.cloud/?authToken=${authToken}`);
 
   socket.addEventListener('open', () => console.log('open') );

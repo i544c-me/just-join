@@ -43,6 +43,7 @@ function App() {
   }
 
   onMount(async () => {
+    // TODO: ここで永続化したデータ取得
     browser.runtime.onMessage.addListener(onMessage);
   });
 
@@ -67,6 +68,7 @@ function App() {
         displayName: user.displayName,
         image: user.currentAvatarImageUrl,
         location: user.location,
+        // TODO: ワールドの情報も取得して保存
       });
       await browser.runtime.sendMessage<MessageBackground>({ method: 'listenUser', content: users[0].id })
     } else {
