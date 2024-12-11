@@ -32,7 +32,7 @@ type MessagePopupNotice = {
 type MessagePopupUpdateLocation = {
   type: "updateLocation";
   content: {
-    location: `wrld_${string}` | "traveling" | "private";
+    location: `wrld_${string}` | "traveling" | "private" | "offline";
     world: {
       name: string;
       description: string;

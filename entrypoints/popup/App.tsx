@@ -19,7 +19,7 @@ type User = {
 
 function App() {
   const [notices, setNotices] = createSignal<Notice[]>([]);
-  const [targetUser, setTargetUser] = createSignal({} as User);
+  const [targetUser, setTargetUser] = createSignal<User>({} as User);
   let inputUsername = document.createElement("input");
 
   const onMessage = (request: MessagePopup) => {
@@ -76,29 +76,22 @@ function App() {
 
   const SearchUser = async () => {
     const username = inputUsername.value;
-    const users = await browser.runtime.sendMessage<
-      MessageBackground,
-      VRCUser[]
-    >({
+    const user = await browser.runtime.sendMessage<MessageBackground, VRCUser>({
       type: "searchUser",
       content: { username },
     });
-    if (users.length > 0) {
-      const user = users[0];
-      setTargetUser({
-        id: user.id,
-        displayName: user.displayName,
-        image: user.currentAvatarImageUrl,
-        location: user.location,
-        // TODO: ワールドの情報も取得して保存
-      });
-      await browser.runtime.sendMessage<MessageBackground>({
-        type: "listenUser",
-        content: { userId: users[0].id },
-      });
-    } else {
-      setTargetUser({} as User);
-    }
+    console.log(user);
+    setTargetUser({
+      id: user.id,
+      displayName: user.displayName,
+      image: user.currentAvatarImageUrl,
+      location: user.location,
+      // TODO: ワールドの情報も取得して保存
+    });
+    await browser.runtime.sendMessage<MessageBackground>({
+      type: "listenUser",
+      content: { userId: user.id },
+    });
   };
 
   return (
@@ -143,7 +136,9 @@ function App() {
         </Show>
 
         <Show when={targetUser().displayName}>
-          <div class="avatar online">
+          <div
+            class={`avatar ${targetUser().location === "offline" ? "offline" : "online"}`}
+          >
             <div class="w-12 rounded-full">
               <img src={targetUser().image} />
             </div>

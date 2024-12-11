@@ -7,7 +7,7 @@ export type VRCUser = {
   isFriend: boolean;
   displayName: string;
   currentAvatarImageUrl: string;
-  location: `wrld_${string}` | "traveling" | "private";
+  location: `wrld_${string}` | "traveling" | "private" | "offline";
 };
 
 export type VRCEvent = {
@@ -19,7 +19,7 @@ export type VRCEvent = {
       name: string;
       description: string;
     };
-    location: `wrld_${string}` | "traveling" | "private";
+    location: `wrld_${string}` | "traveling" | "private" | "offline";
     travelingToLocation: `wrld_${string}` | "";
   };
 };
@@ -40,18 +40,29 @@ class VRChat {
     this.socket.addEventListener("close", () => console.log("close"));
   }
 
+  private async fetch(url: string, init?: RequestInit) {
+    return fetch(url, {
+      ...init,
+      mode: "no-cors",
+      headers: {
+        Cookie: `auth=${this.authToken}`,
+      },
+    });
+  }
+
   async searchUser(username: string): Promise<VRCUser[]> {
     if (username === "") return [];
 
-    const res = await fetch(
+    const res = await this.fetch(
       `https://vrchat.com/api/1/users?search=${username}`,
-      {
-        mode: "no-cors",
-        headers: {
-          Cookie: `auth=${this.authToken}`,
-        },
-      },
     );
+    return await res.json();
+  }
+
+  async getUser(userId: string): Promise<VRCUser> {
+    if (userId === "") return {} as VRCUser;
+
+    const res = await this.fetch(`https://vrchat.com/api/1/users/${userId}`);
     return await res.json();
   }
 
@@ -59,13 +70,12 @@ class VRChat {
     if (friendLocation === "") return;
 
     console.log("invite!");
-    //await fetch(`https://vrchat.com/api/1/invite/myself/to/${friendLocation}`, {
-    //  mode: 'no-cors',
-    //  method: 'POST',
-    //  headers: {
-    //    Cookie: `auth=${this.authToken}`,
-    //  },
-    //});
+    await this.fetch(
+      `https://vrchat.com/api/1/invite/myself/to/${friendLocation}`,
+      {
+        method: "POST",
+      },
+    );
   }
 
   registerEvent(func: (e: VRCEvent) => void) {

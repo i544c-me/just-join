@@ -43,13 +43,16 @@ export default defineBackground(() => {
           // NOTE: ここを async で書くことができないので、渋々 then を使っている
           // https://developer.mozilla.org/ja/docs/Mozilla/Add-ons/WebExtensions/API/runtime/onMessage#listener
           client.searchUser(request.content.username).then((users) => {
-            sendResponse(users);
+            if (users.length === 0) sendResponse({});
+            const user = users[0];
+            client.getUser(user.id).then(sendResponse);
           });
           break;
 
         case "listenUser":
           const userId = request.content.userId;
           client.registerEvent((e) => {
+            // TODO: online, offline も検出する
             if (e.type !== "friend-location" || e.content.userId !== userId)
               return;
 
