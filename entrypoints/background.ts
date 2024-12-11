@@ -1,5 +1,5 @@
 import VRChat from "./lib/vrchat";
-import { MessageBackground, MessagePopup } from "./lib/common";
+import type { MessageBackground, MessagePopup } from "./lib/common";
 
 let client: VRChat;
 
@@ -49,7 +49,7 @@ export default defineBackground(() => {
           });
           break;
 
-        case "listenUser":
+        case "listenUser": {
           const userId = request.content.userId;
           client.registerEvent((e) => {
             // TODO: online, offline も検出する
@@ -72,6 +72,7 @@ export default defineBackground(() => {
             }
           });
           break;
+        }
 
         default:
           return request satisfies never;

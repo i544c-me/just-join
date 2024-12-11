@@ -1,5 +1,5 @@
-import { VRCUser } from "../lib/vrchat";
-import { MessageBackground, MessagePopup } from "../lib/common";
+import type { VRCUser } from "../lib/vrchat";
+import type { MessageBackground, MessagePopup } from "../lib/common";
 
 type Notice = {
   level: string;
@@ -20,6 +20,7 @@ type User = {
 function App() {
   const [notices, setNotices] = createSignal<Notice[]>([]);
   const [targetUser, setTargetUser] = createSignal<User>({} as User);
+  // biome-ignore lint/style/useConst: ref
   let inputUsername = document.createElement("input");
 
   const onMessage = (request: MessagePopup) => {
@@ -105,13 +106,13 @@ function App() {
             ref={inputUsername}
             onKeyDown={CheckKey}
           />
-          <button class="btn join-item" onClick={SearchUser}>
+          <button type="button" class="btn join-item" onClick={SearchUser}>
             検索
           </button>
         </div>
 
         <div>
-          <button class="btn btn-neutral" onClick={init}>
+          <button type="button" class="btn btn-neutral" onClick={init}>
             再認証
           </button>
         </div>
@@ -140,7 +141,7 @@ function App() {
             class={`avatar ${targetUser().location === "offline" ? "offline" : "online"}`}
           >
             <div class="w-12 rounded-full">
-              <img src={targetUser().image} />
+              <img alt="user's icon" src={targetUser().image} />
             </div>
           </div>
           <p>{targetUser().displayName}</p>
