@@ -26,9 +26,16 @@ export type VRCEvent = {
 
 class VRChat {
   private authToken: string;
+  private socket: WebSocket;
+  private prevController: AbortController;
 
   constructor(params: Params) {
     this.authToken = params.authToken;
+    this.socket = new WebSocket(`wss://pipeline.vrchat.cloud/?authToken=${this.authToken}`);
+    this.prevController = new AbortController();
+
+    this.socket.addEventListener('open',  () => console.log('open'));
+    this.socket.addEventListener('close', () => console.log('close'));
   }
 
   async searchUser(username: string): Promise<VRCUser[]> {
@@ -55,8 +62,21 @@ class VRChat {
     });
   }
 
-  // TODO: 良い感じに WebSocket のイベントのコールバックを受け付けたい
-  // callback を受け付ける関数とか
+  registerEvent(func: (e: VRCEvent) => void) {
+    this.prevController.abort();
+    const newController = new AbortController();
+    this.socket.addEventListener('message', e => {
+      const data: VRCEvent = JSON.parse(e.data, (_key, value) => {
+        try {
+          return JSON.parse(value);
+        } catch {
+          return value;
+        }
+      });
+      func(data);
+    }, { signal: newController.signal });
+    this.prevController = newController;
+  }
 }
 
 export default VRChat;

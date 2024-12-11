@@ -1,38 +1,8 @@
-import VRChat, { VRCEvent } from './lib/vrchat';
+import VRChat from './lib/vrchat';
 import { MessageBackground, MessagePopup } from './lib/common';
-
-let client: VRChat;
-
-function listenUser(event: MessageEvent, userId: string) {
-  const data: VRCEvent = JSON.parse(event.data, (_key, value) => {
-    try {
-      return JSON.parse(value)
-    } catch {
-      return value;
-    }
-  });
-  //console.log(data);
-  if (data.type !== 'friend-location' || data.content.userId !== userId) return;
-
-  const friendLocation = data.content.travelingToLocation || data.content.location;
-
-  if (friendLocation) {
-    client.inviteMe(friendLocation);
-
-    browser.runtime.sendMessage<MessagePopup>({
-      method: 'updateLocation',
-      content: {
-        location: friendLocation,
-        world: data.content.world,
-      },
-    });
-  }
-}
 
 export default defineBackground(async () => {
   console.log('Hello background!', { id: browser.runtime.id });
-
-  let prevlistenUserController: AbortController;
 
   const authCookie = await browser.cookies.get({ name: 'auth', url: 'https://vrchat.com/' });
   const authToken = authCookie?.value || '';
@@ -40,13 +10,7 @@ export default defineBackground(async () => {
     // TODO: VRChat でログインするようにユーザーに通知する
   }
 
-  client = new VRChat({ authToken });
-
-  // TODO: WebSocket の実装は VRChat lib に移す
-  const socket = new WebSocket(`wss://pipeline.vrchat.cloud/?authToken=${authToken}`);
-
-  socket.addEventListener('open', () => console.log('open') );
-  socket.addEventListener('close', () => console.log('close') );
+  const client = new VRChat({ authToken });
 
   browser.runtime.onMessage.addListener((request: MessageBackground, _sender, sendResponse) => {
     switch (request.method) {
@@ -58,12 +22,28 @@ export default defineBackground(async () => {
           sendResponse(users);
         });
         break;
+
       case 'listenUser':
-        if (prevlistenUserController) prevlistenUserController.abort();
-        const newListenerUserController = new AbortController();
-        socket.addEventListener('message', e => listenUser(e, request.content as string), { signal: newListenerUserController.signal });
-        prevlistenUserController = newListenerUserController;
+        const userId = request.content as string;
+        client.registerEvent(e => {
+          if (e.type !== 'friend-location' || e.content.userId !== userId) return;
+
+          const friendLocation = e.content.travelingToLocation || e.content.location;
+
+          if (friendLocation) {
+            client.inviteMe(friendLocation);
+
+            browser.runtime.sendMessage<MessagePopup>({
+              method: 'updateLocation',
+              content: {
+                location: friendLocation,
+                world: e.content.world,
+              },
+            });
+          }
+        });
         break;
+
       default:
         console.error('unknown method...');
         return request.method satisfies never;

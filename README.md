@@ -1,3 +1,8 @@
-# WXT + SolidJS
+# Just join!
 
-This template should help get you started developing with SolidJS in WXT.
+## About
+
+VRChat にて指定したユーザーのもとにいち早くジョインするため、自分自身にインバイトを送信します。
+あくまで自分自身に対してのみアクションを起こすため、このツールそのものはトラブルを発生しません。
+
+用法用量を守って、楽しい VRChat ライフを！
