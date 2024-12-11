@@ -1,6 +1,6 @@
 export default defineContentScript({
-  matches: ['*://*.vrchat.com/*'],
+  matches: ["*://*.vrchat.com/*"],
   main() {
-    console.log('Hello content.');
+    console.log("Hello content.");
   },
 });

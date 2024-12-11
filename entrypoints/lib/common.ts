@@ -1,45 +1,43 @@
 type MessageBackgroundInit = {
-  type: 'init';
-}
+  type: "init";
+};
 
 type MessageBackgroundSearchUser = {
-  type: 'searchUser';
+  type: "searchUser";
   content: {
     username: string;
-  }
-}
+  };
+};
 
 type MessageBackgroundListenUser = {
-  type: 'listenUser',
+  type: "listenUser";
   content: {
     userId: string;
-  }
-}
+  };
+};
 
 export type MessageBackground =
   | MessageBackgroundInit
   | MessageBackgroundSearchUser
-  | MessageBackgroundListenUser
+  | MessageBackgroundListenUser;
 
 type MessagePopupNotice = {
-  type: 'notice';
+  type: "notice";
   content: {
-    level: 'info' | 'warn';
+    level: "info" | "warn";
     message: string;
-  }
-}
+  };
+};
 
 type MessagePopupUpdateLocation = {
-  type: 'updateLocation';
+  type: "updateLocation";
   content: {
-    location: `wrld_${string}` | 'traveling' | 'private';
+    location: `wrld_${string}` | "traveling" | "private";
     world: {
       name: string;
       description: string;
-    }
-  }
-}
+    };
+  };
+};
 
-export type MessagePopup =
-  | MessagePopupNotice
-  | MessagePopupUpdateLocation
+export type MessagePopup = MessagePopupNotice | MessagePopupUpdateLocation;
