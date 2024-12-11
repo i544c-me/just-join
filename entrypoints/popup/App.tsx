@@ -1,6 +1,11 @@
 import { VRCUser } from '../lib/vrchat';
 import { MessageBackground, MessagePopup } from '../lib/common';
 
+type Notice = {
+  level: string;
+  message: string;
+}
+
 type User = {
   id: string,
   displayName: string;
@@ -13,13 +18,18 @@ type User = {
 };
 
 function App() {
+  const [notices, setNotices] = createSignal<Notice[]>([]);
   const [targetUser, setTargetUser] = createSignal({} as User);
   let inputUsername = document.createElement('input');
 
   const onMessage = (request: MessagePopup) => {
     console.log('onMessage', request)
 
-    switch (request.method) {
+    switch (request.type) {
+      case 'notice':
+        setNotices([...notices(), { ...request.content }]);
+        break;
+
       case 'updateLocation':
         if (request.content.location === 'private') {
           setTargetUser({
@@ -37,19 +47,25 @@ function App() {
           });
         }
         break;
+
       default:
-        return request.method satisfies never;
+        return request satisfies never;
     }
   }
 
   onMount(async () => {
-    // TODO: ここで永続化したデータ取得
     browser.runtime.onMessage.addListener(onMessage);
+
+    // TODO: sendMessage で backend が持っている状態を取得しに行く
   });
 
   onCleanup(() => {
     browser.runtime.onMessage.removeListener(onMessage);
   });
+
+  const init = () => {
+    browser.runtime.sendMessage<MessageBackground>({ type: 'init' });
+  }
 
   const CheckKey = (event: KeyboardEvent) => {
     if (event.key === 'Enter' && !event.isComposing) {
@@ -60,7 +76,10 @@ function App() {
 
   const SearchUser = async () => {
     const username = inputUsername.value;
-    const users = await browser.runtime.sendMessage<MessageBackground, VRCUser[]>({ method: 'searchUser', content: username });
+    const users = await browser.runtime.sendMessage<MessageBackground, VRCUser[]>({
+      type: 'searchUser',
+      content: { username }
+    });
     if (users.length > 0) {
       const user = users[0];
       setTargetUser({
@@ -70,7 +89,10 @@ function App() {
         location: user.location,
         // TODO: ワールドの情報も取得して保存
       });
-      await browser.runtime.sendMessage<MessageBackground>({ method: 'listenUser', content: users[0].id })
+      await browser.runtime.sendMessage<MessageBackground>({
+        type: 'listenUser',
+        content: { userId: users[0].id }
+      });
     } else {
       setTargetUser({} as User);
     }
@@ -83,6 +105,18 @@ function App() {
         <div class="join">
           <input class="input input-bordered join-item" placeholder="ユーザー名" ref={inputUsername} onKeyDown={CheckKey} />
           <button class="btn join-item" onClick={SearchUser}>検索</button>
+        </div>
+
+        <div>
+          <button class="btn btn-neutral" onClick={init}>再認証</button>
+        </div>
+
+        <div class="toast">
+          <For each={notices()}>{notice =>
+            <div class={`alert ${notice.level === 'info' ? 'alert-info' : 'alert-warning'}`}>
+              {notice.level}: {notice.message}
+            </div>
+          }</For>
         </div>
 
         <Show when={!targetUser().displayName}>

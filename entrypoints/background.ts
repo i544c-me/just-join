@@ -1,30 +1,50 @@
 import VRChat from './lib/vrchat';
 import { MessageBackground, MessagePopup } from './lib/common';
 
-export default defineBackground(async () => {
-  console.log('Hello background!', { id: browser.runtime.id });
+let client: VRChat;
 
+function notice(level: 'info' | 'warn', message: string) {
+  browser.runtime.sendMessage<MessagePopup>({
+    type: 'notice',
+    content: { level, message },
+  });
+}
+
+async function init() {
   const authCookie = await browser.cookies.get({ name: 'auth', url: 'https://vrchat.com/' });
   const authToken = authCookie?.value || '';
   if (!authToken) {
-    // TODO: VRChat でログインするようにユーザーに通知する
+    // TODO: 現状この通知は popup にほとんど届かないので修正
+    // 未認証という状態を popup に持って行ければ良い
+    notice('warn', 'vrchat.com/login を開いてログインしてください');
+  } else {
+    notice('info', '認証に成功しました');
+    client = new VRChat({ authToken });
   }
+}
 
-  const client = new VRChat({ authToken });
+export default defineBackground(() => {
+  console.log('Hello background!', { id: browser.runtime.id });
+
+  init();
 
   browser.runtime.onMessage.addListener((request: MessageBackground, _sender, sendResponse) => {
-    switch (request.method) {
+    switch (request.type) {
+      case 'init':
+        init();
+        break;
+
       case 'searchUser':
         console.log('searchUser: ', request.content);
         // NOTE: ここを async で書くことができないので、渋々 then を使っている
         // https://developer.mozilla.org/ja/docs/Mozilla/Add-ons/WebExtensions/API/runtime/onMessage#listener
-        client.searchUser(request.content as string).then(users => {
+        client.searchUser(request.content.username).then(users => {
           sendResponse(users);
         });
         break;
 
       case 'listenUser':
-        const userId = request.content as string;
+        const userId = request.content.userId;
         client.registerEvent(e => {
           if (e.type !== 'friend-location' || e.content.userId !== userId) return;
 
@@ -34,7 +54,7 @@ export default defineBackground(async () => {
             client.inviteMe(friendLocation);
 
             browser.runtime.sendMessage<MessagePopup>({
-              method: 'updateLocation',
+              type: 'updateLocation',
               content: {
                 location: friendLocation,
                 world: e.content.world,
@@ -45,8 +65,7 @@ export default defineBackground(async () => {
         break;
 
       default:
-        console.error('unknown method...');
-        return request.method satisfies never;
+        return request satisfies never;
     }
     return true;
   })
