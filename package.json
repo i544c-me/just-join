@@ -12,7 +12,9 @@
     "zip": "wxt zip",
     "zip:firefox": "wxt zip -b firefox",
     "compile": "tsc --noEmit",
-    "postinstall": "wxt prepare"
+    "postinstall": "wxt prepare",
+    "format": "biome format ./entrypoints",
+    "lint": "biome lint --error-on-warnings ./entrypoints"
   },
   "dependencies": {
     "solid-js": "^1.9.3"

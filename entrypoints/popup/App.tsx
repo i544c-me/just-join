@@ -1,10 +1,5 @@
 import type { VRCUser } from "../lib/vrchat";
-import type { MessageBackground, MessagePopup } from "../lib/common";
-
-type Notice = {
-  level: string;
-  message: string;
-};
+import type { MessageBackground, MessagePopup, Notice } from "../lib/common";
 
 type User = {
   id: string;
@@ -28,7 +23,7 @@ function App() {
 
     switch (request.type) {
       case "notice":
-        setNotices([...notices(), { ...request.content }]);
+        setNotices([...notices(), request.content]);
         break;
 
       case "updateLocation":
@@ -56,8 +51,7 @@ function App() {
 
   onMount(async () => {
     browser.runtime.onMessage.addListener(onMessage);
-
-    // TODO: sendMessage で backend が持っている状態を取得しに行く
+    init();
   });
 
   onCleanup(() => {
@@ -65,6 +59,7 @@ function App() {
   });
 
   const init = () => {
+    // TODO: 状態が帰ってくるので、それを保存する
     browser.runtime.sendMessage<MessageBackground>({ type: "init" });
   };
 

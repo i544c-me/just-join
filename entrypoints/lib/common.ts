@@ -21,12 +21,14 @@ export type MessageBackground =
   | MessageBackgroundSearchUser
   | MessageBackgroundListenUser;
 
+export type Notice = {
+  level: "info" | "warn";
+  message: string;
+};
+
 type MessagePopupNotice = {
   type: "notice";
-  content: {
-    level: "info" | "warn";
-    message: string;
-  };
+  content: Notice;
 };
 
 type MessagePopupUpdateLocation = {

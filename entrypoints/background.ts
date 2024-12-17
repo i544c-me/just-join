@@ -1,12 +1,12 @@
 import VRChat from "./lib/vrchat";
-import type { MessageBackground, MessagePopup } from "./lib/common";
+import type { MessageBackground, MessagePopup, Notice } from "./lib/common";
 
 let client: VRChat;
 
-function notice(level: "info" | "warn", message: string) {
+function notice(content: Notice) {
   browser.runtime.sendMessage<MessagePopup>({
     type: "notice",
-    content: { level, message },
+    content,
   });
 }
 
@@ -19,9 +19,15 @@ async function init() {
   if (!authToken) {
     // TODO: 現状この通知は popup にほとんど届かないので修正
     // 未認証という状態を popup に持って行ければ良い
-    notice("warn", "vrchat.com/login を開いてログインしてください");
+    notice({
+      level: "warn",
+      message: "vrchat.com/login を開いてログインしてください",
+    });
   } else {
-    notice("info", "認証に成功しました");
+    notice({
+      level: "info",
+      message: "認証に成功しました",
+    });
     client = new VRChat({ authToken });
   }
 }
