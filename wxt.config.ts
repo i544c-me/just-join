@@ -6,6 +6,6 @@ export default defineConfig({
   modules: ['@wxt-dev/module-solid'],
   manifest: {
     host_permissions: ['https://vrchat.com/*'],
-    permissions: ['cookies'],
+    permissions: ['cookies', 'storage'],
   }
 });

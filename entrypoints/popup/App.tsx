@@ -1,5 +1,8 @@
+import { storage } from "wxt/storage";
 import type { VRCUser } from "../lib/vrchat";
 import type { MessageBackground, MessagePopup, Notice } from "../lib/common";
+import { Context } from "./Context";
+import Notification from "./Notification";
 
 type User = {
   id: string;
@@ -13,7 +16,7 @@ type User = {
 };
 
 function App() {
-  const [notices, setNotices] = createSignal<Notice[]>([]);
+  const { addNotification } = useContext(Context)
   const [targetUser, setTargetUser] = createSignal<User>({} as User);
   // biome-ignore lint/style/useConst: ref
   let inputUsername = document.createElement("input");
@@ -23,7 +26,7 @@ function App() {
 
     switch (request.type) {
       case "notice":
-        setNotices([...notices(), request.content]);
+        addNotification(request.content);
         break;
 
       case "updateLocation":
@@ -58,9 +61,16 @@ function App() {
     browser.runtime.onMessage.removeListener(onMessage);
   });
 
-  const init = () => {
-    // TODO: 状態が帰ってくるので、それを保存する
+  const init = async () => {
     browser.runtime.sendMessage<MessageBackground>({ type: "init" });
+    const user = await storage.getItem<VRCUser>("local:user")
+    console.log("get user", user);
+    setTargetUser({
+      id: user?.id || "",
+      displayName: user?.displayName || "",
+      image: user?.currentAvatarImageUrl || "",
+      location: user?.location || "",
+    });
   };
 
   const CheckKey = (event: KeyboardEvent) => {
@@ -76,7 +86,7 @@ function App() {
       type: "searchUser",
       content: { username },
     });
-    console.log(user);
+    storage.setItem("local:user", user);
     setTargetUser({
       id: user.id,
       displayName: user.displayName,
@@ -112,17 +122,7 @@ function App() {
           </button>
         </div>
 
-        <div class="toast">
-          <For each={notices()}>
-            {(notice) => (
-              <div
-                class={`alert ${notice.level === "info" ? "alert-info" : "alert-warning"}`}
-              >
-                {notice.level}: {notice.message}
-              </div>
-            )}
-          </For>
-        </div>
+        <Notification />
 
         <Show when={!targetUser().displayName}>
           <div role="alert" class="alert alert-warning">

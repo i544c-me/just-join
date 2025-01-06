@@ -24,9 +24,9 @@ export type VRCEvent = {
   };
 };
 
-class VRChat {
-  private authToken: string;
-  private socket: WebSocket;
+export default class VRChat {
+  private readonly authToken: string;
+  private readonly socket: WebSocket;
   private prevController: AbortController;
 
   constructor(params: Params) {
@@ -42,11 +42,11 @@ class VRChat {
 
   private async fetch(url: string, init?: RequestInit) {
     return fetch(url, {
-      ...init,
       mode: "no-cors",
       headers: {
         Cookie: `auth=${this.authToken}`,
       },
+      ...init,
     });
   }
 
@@ -98,5 +98,3 @@ class VRChat {
     this.prevController = newController;
   }
 }
-
-export default VRChat;
