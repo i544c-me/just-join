@@ -10,8 +10,13 @@ export type VRCUser = {
   location: `wrld_${string}` | "traveling" | "private" | "offline";
 };
 
-export type VRCEvent = {
-  type: "friend-location" | "something";
+export type VRCEvent =
+  | VRCEventFriendLocation
+  | VRCEventNotActiveSession
+  | VRCEventSomething
+
+type VRCEventFriendLocation = {
+  type: "friend-location";
   content: {
     userId: string;
     worldId: string;
@@ -23,6 +28,16 @@ export type VRCEvent = {
     travelingToLocation: `wrld_${string}` | "";
   };
 };
+
+type VRCEventNotActiveSession = {
+  err: string;
+  authToken: string;
+  ip: string;
+}
+
+type VRCEventSomething = {
+  type: "something";
+}
 
 export default class VRChat {
   private readonly authToken: string;

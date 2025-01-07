@@ -58,6 +58,17 @@ export default defineBackground(() => {
         case "listenUser": {
           const userId = request.content.userId;
           client.registerEvent((e) => {
+            if ("err" in e) {
+              browser.runtime.sendMessage<MessagePopup>({
+                type: "notice",
+                content: {
+                  level: "warn",
+                  message: "接続に失敗、VRC にログインし直してください",
+                },
+              })
+              return;
+            }
+
             // TODO: online, offline も検出する
             if (e.type !== "friend-location" || e.content.userId !== userId)
               return;
