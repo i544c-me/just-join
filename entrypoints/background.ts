@@ -24,11 +24,10 @@ async function init() {
       message: "vrchat.com/login を開いてログインしてください",
     });
   } else {
-    notice({
-      level: "info",
-      message: "認証に成功しました",
-    });
-    client = new VRChat({ authToken });
+    // TODO: ここで何度も生成され続けているのでは？
+    // WebSocket が接続中ならば作り直さないようにする
+    client = VRChat.getInstance({ authToken });
+    client.connectStream();
   }
 }
 

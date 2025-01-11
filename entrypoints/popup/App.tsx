@@ -64,7 +64,12 @@ function App() {
   const init = async () => {
     browser.runtime.sendMessage<MessageBackground>({ type: "init" });
     const user = await storage.getItem<VRCUser>("local:user")
-    console.log("get user", user);
+    if (user?.displayName) {
+      browser.runtime.sendMessage<MessageBackground>({
+        type: "listenUser",
+        content: { userId: user.id },
+      });
+    }
     setTargetUser({
       id: user?.id || "",
       displayName: user?.displayName || "",

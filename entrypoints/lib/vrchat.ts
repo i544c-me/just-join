@@ -40,19 +40,39 @@ type VRCEventSomething = {
 }
 
 export default class VRChat {
+  private static instance: VRChat
   private readonly authToken: string;
-  private readonly socket: WebSocket;
+  private socket: WebSocket | null;
   private prevController: AbortController;
+  connectionState = false;
 
-  constructor(params: Params) {
+  private constructor(params: Params) {
     this.authToken = params.authToken;
-    this.socket = new WebSocket(
-      `wss://pipeline.vrchat.cloud/?authToken=${this.authToken}`,
-    );
+    this.connectionState = false;
+    this.socket = null;
     this.prevController = new AbortController();
+  }
 
-    this.socket.addEventListener("open", () => console.log("open"));
-    this.socket.addEventListener("close", () => console.log("close"));
+  static getInstance(params: Params) {
+    if (!VRChat.instance) VRChat.instance = new VRChat(params);
+    return VRChat.instance;
+  }
+
+  connectStream() {
+    if (!this.socket || this.socket.readyState === this.socket.CLOSED) {
+      this.connectionState = false;
+      this.socket = new WebSocket(
+        `wss://pipeline.vrchat.cloud/?authToken=${this.authToken}`,
+      );
+      this.socket.addEventListener("open", () => {
+        console.log("open");
+        this.connectionState = true;
+      });
+      this.socket.addEventListener("close", () => {
+        console.log("close")
+        this.connectionState = false;
+      });
+    }
   }
 
   private async fetch(url: string, init?: RequestInit) {
@@ -96,7 +116,7 @@ export default class VRChat {
   registerEvent(func: (e: VRCEvent) => void) {
     this.prevController.abort();
     const newController = new AbortController();
-    this.socket.addEventListener(
+    this.socket?.addEventListener(
       "message",
       (e) => {
         const data: VRCEvent = JSON.parse(e.data, (_key, value) => {
