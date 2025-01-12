@@ -3,7 +3,7 @@ import type { Notice } from "../lib/common";
 
 type Store = {
   notifications: Notice[];
-}
+};
 
 export const Context = createContext({
   store: {} as Store,
@@ -18,17 +18,18 @@ export const Provider: ParentComponent = (props) => {
   const value = {
     store,
     addNotification(notification: Notice) {
-      setStore("notifications", notifications => [...notifications, notification]);
+      setStore("notifications", (notifications) => [
+        ...notifications,
+        notification,
+      ]);
       console.log("add notifications", store.notifications);
     },
     removeNotification(index: number) {
-      setStore("notifications", notifications => notifications.toSpliced(index, 1));
+      setStore("notifications", (notifications) =>
+        notifications.toSpliced(index, 1),
+      );
       console.log("remove notifications", store.notifications);
     },
   };
-  return (
-    <Context.Provider value={value}>
-      {props.children}
-    </Context.Provider>
-  )
+  return <Context.Provider value={value}>{props.children}</Context.Provider>;
 };

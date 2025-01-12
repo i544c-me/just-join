@@ -68,7 +68,7 @@ export default defineBackground(() => {
                   level: "warn",
                   message: "接続に失敗、VRC にログインし直してください",
                 },
-              })
+              });
               return;
             }
 

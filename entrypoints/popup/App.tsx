@@ -16,7 +16,7 @@ type User = {
 };
 
 function App() {
-  const { addNotification } = useContext(Context)
+  const { addNotification } = useContext(Context);
   const [targetUser, setTargetUser] = createSignal<User>({} as User);
   // biome-ignore lint/style/useConst: ref
   let inputUsername = document.createElement("input");
@@ -63,7 +63,7 @@ function App() {
 
   const init = async () => {
     browser.runtime.sendMessage<MessageBackground>({ type: "init" });
-    const user = await storage.getItem<VRCUser>("local:user")
+    const user = await storage.getItem<VRCUser>("local:user");
     if (user?.displayName) {
       browser.runtime.sendMessage<MessageBackground>({
         type: "listenUser",
@@ -91,7 +91,7 @@ function App() {
       type: "searchUser",
       content: { username },
     });
-    console.log('user', user);
+    console.log("user", user);
     storage.setItem("local:user", user);
     setTargetUser({
       id: user.id,

@@ -21,7 +21,7 @@ export type VRCWorld = {
 export type VRCEvent =
   | VRCEventFriendLocation
   | VRCEventNotActiveSession
-  | VRCEventSomething
+  | VRCEventSomething;
 
 type VRCEventFriendLocation = {
   type: "friend-location";
@@ -41,14 +41,14 @@ type VRCEventNotActiveSession = {
   err: string;
   authToken: string;
   ip: string;
-}
+};
 
 type VRCEventSomething = {
   type: "something";
-}
+};
 
 export default class VRChat {
-  private static instance: VRChat
+  private static instance: VRChat;
   private readonly authToken: string;
   private socket: WebSocket | null;
   private prevController: AbortController;
@@ -77,7 +77,7 @@ export default class VRChat {
         this.connectionState = true;
       });
       this.socket.addEventListener("close", () => {
-        console.log("close")
+        console.log("close");
         this.connectionState = false;
       });
     }

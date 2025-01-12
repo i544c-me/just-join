@@ -6,7 +6,7 @@ export default function Notification() {
   const CloseNotification = (index: number) => {
     console.log("remove: ", store.notifications[index]);
     removeNotification(index);
-  }
+  };
 
   return (
     <div class="toast">
@@ -16,10 +16,16 @@ export default function Notification() {
             class={`alert ${notification.level === "info" ? "alert-info" : "alert-warning"}`}
           >
             <span class="grow">{notification.message}</span>
-            <button type="button" class="btn btn-ghost btn-xs" onClick={() => CloseNotification(index())}>×</button>
+            <button
+              type="button"
+              class="btn btn-ghost btn-xs"
+              onClick={() => CloseNotification(index())}
+            >
+              ×
+            </button>
           </div>
         )}
       </For>
     </div>
-  )
+  );
 }
