@@ -44,13 +44,17 @@ export default defineBackground(() => {
           break;
 
         case "searchUser":
-          console.log("searchUser: ", request.content);
           // NOTE: ここを async で書くことができないので、渋々 then を使っている
           // https://developer.mozilla.org/ja/docs/Mozilla/Add-ons/WebExtensions/API/runtime/onMessage#listener
           client.searchUser(request.content.username).then((users) => {
             if (users.length === 0) sendResponse({});
             const user = users[0];
-            client.getUser(user.id).then(sendResponse);
+            client.getUser(user.id).then((user) => {
+              client.getWorld(user.worldId).then((world) => {
+                user.world = world;
+                sendResponse(user);
+              });
+            });
           });
           break;
 

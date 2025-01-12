@@ -8,6 +8,14 @@ export type VRCUser = {
   displayName: string;
   currentAvatarImageUrl: string;
   location: `wrld_${string}` | "traveling" | "private" | "offline";
+  worldId: string;
+  world: VRCWorld;
+};
+
+export type VRCWorld = {
+  id: string;
+  name: string;
+  description: string;
 };
 
 export type VRCEvent =
@@ -98,6 +106,13 @@ export default class VRChat {
     if (userId === "") return {} as VRCUser;
 
     const res = await this.fetch(`https://vrchat.com/api/1/users/${userId}`);
+    return await res.json();
+  }
+
+  async getWorld(worldId: string): Promise<VRCWorld> {
+    if (worldId === "offline") return {} as VRCWorld;
+
+    const res = await this.fetch(`https://vrchat.com/api/1/worlds/${worldId}`);
     return await res.json();
   }
 

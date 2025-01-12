@@ -91,13 +91,14 @@ function App() {
       type: "searchUser",
       content: { username },
     });
+    console.log('user', user);
     storage.setItem("local:user", user);
     setTargetUser({
       id: user.id,
       displayName: user.displayName,
       image: user.currentAvatarImageUrl,
       location: user.location,
-      // TODO: ワールドの情報も取得して保存
+      world: user.world,
     });
     await browser.runtime.sendMessage<MessageBackground>({
       type: "listenUser",
