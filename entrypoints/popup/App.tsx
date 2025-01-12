@@ -21,16 +21,18 @@ function App() {
   // biome-ignore lint/style/useConst: ref
   let inputUsername = document.createElement("input");
 
-  const onMessage = (request: MessagePopup) => {
-    console.log("onMessage", request);
+  const onMessage = (message: MessagePopup) => {
+    console.log("onMessage", message);
 
-    switch (request.type) {
+    if (message.target !== "popup") return true;
+
+    switch (message.type) {
       case "notice":
-        addNotification(request.content);
+        addNotification(message.content);
         break;
 
       case "updateLocation":
-        if (request.content.location === "private") {
+        if (message.content.location === "private") {
           setTargetUser({
             ...targetUser(),
             world: {},
@@ -38,18 +40,20 @@ function App() {
         } else {
           setTargetUser({
             ...targetUser(),
-            location: request.content.location,
+            location: message.content.location,
             world: {
-              name: request.content.world.name,
-              description: request.content.world.description,
+              name: message.content.world.name,
+              description: message.content.world.description,
             },
           });
         }
         break;
 
       default:
-        return request satisfies never;
+        console.trace("Unknown message", message satisfies never);
     }
+
+    return true;
   };
 
   onMount(async () => {
@@ -62,10 +66,14 @@ function App() {
   });
 
   const init = async () => {
-    browser.runtime.sendMessage<MessageBackground>({ type: "init" });
+    browser.runtime.sendMessage<MessageBackground>({
+      target: "background",
+      type: "init",
+    });
     const user = await storage.getItem<VRCUser>("local:user");
     if (user?.displayName) {
       browser.runtime.sendMessage<MessageBackground>({
+        target: "background",
         type: "listenUser",
         content: { userId: user.id },
       });
@@ -88,6 +96,7 @@ function App() {
   const SearchUser = async () => {
     const username = inputUsername.value;
     const user = await browser.runtime.sendMessage<MessageBackground, VRCUser>({
+      target: "background",
       type: "searchUser",
       content: { username },
     });
@@ -101,6 +110,7 @@ function App() {
       world: user.world,
     });
     await browser.runtime.sendMessage<MessageBackground>({
+      target: "background",
       type: "listenUser",
       content: { userId: user.id },
     });

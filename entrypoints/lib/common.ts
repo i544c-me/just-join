@@ -16,10 +16,11 @@ type MessageBackgroundListenUser = {
   };
 };
 
-export type MessageBackground =
+export type MessageBackground = { target: "background" } & (
   | MessageBackgroundInit
   | MessageBackgroundSearchUser
-  | MessageBackgroundListenUser;
+  | MessageBackgroundListenUser
+);
 
 export type Notice = {
   level: "info" | "warn";
@@ -42,4 +43,20 @@ type MessagePopupUpdateLocation = {
   };
 };
 
-export type MessagePopup = MessagePopupNotice | MessagePopupUpdateLocation;
+export type MessagePopup = { target: "popup" } & (
+  | MessagePopupNotice
+  | MessagePopupUpdateLocation
+);
+
+type MessageOffscreenRing = {
+  type: "ring";
+};
+
+type MessageOffscreenOther = {
+  type: "other";
+};
+
+export type MessageOffscreen = { target: "offscreen" } & (
+  | MessageOffscreenRing
+  | MessageOffscreenOther
+);

@@ -1,12 +1,27 @@
-import type { MessageBackground, MessagePopup, Notice } from "./lib/common";
+import type {
+  MessageBackground,
+  MessageOffscreen,
+  MessagePopup,
+  Notice,
+} from "./lib/common";
 import VRChat from "./lib/vrchat";
 
 let client: VRChat;
 
 function notice(content: Notice) {
   browser.runtime.sendMessage<MessagePopup>({
+    target: "popup",
     type: "notice",
     content,
+  });
+}
+
+function ring() {
+  setupOffscreen().then(() => {
+    browser.runtime.sendMessage<MessageOffscreen>({
+      target: "offscreen",
+      type: "ring",
+    });
   });
 }
 
@@ -17,28 +32,44 @@ async function init() {
   });
   const authToken = authCookie?.value || "";
   if (!authToken) {
-    // TODO: 現状この通知は popup にほとんど届かないので修正
-    // 未認証という状態を popup に持って行ければ良い
     notice({
       level: "warn",
       message: "vrchat.com/login を開いてログインしてください",
     });
   } else {
-    // TODO: ここで何度も生成され続けているのでは？
-    // WebSocket が接続中ならば作り直さないようにする
     client = VRChat.getInstance({ authToken });
     client.connectStream();
   }
+}
+
+async function setupOffscreen() {
+  // NOTE: ここを async で書くことができないので、渋々 then を使っている
+  // https://developer.mozilla.org/ja/docs/Mozilla/Add-ons/WebExtensions/API/runtime/onMessage#listener
+  const offscreenUrl = browser.runtime.getURL("/offscreen.html");
+  browser.runtime.getContexts({
+    contextTypes: [browser.runtime.ContextType.OFFSCREEN_DOCUMENT],
+    documentUrls: [offscreenUrl],
+  }).then((existingContexts) => {
+    if (existingContexts.length > 0) return;
+    browser.offscreen.createDocument({
+      url: "/offscreen.html",
+      reasons: [browser.offscreen.Reason.AUDIO_PLAYBACK],
+      justification: "For play audio",
+    });
+  });
 }
 
 export default defineBackground(() => {
   console.log("Hello background!", { id: browser.runtime.id });
 
   init();
+  setupOffscreen();
 
   browser.runtime.onMessage.addListener(
-    (request: MessageBackground, _sender, sendResponse) => {
-      switch (request.type) {
+    (message: MessageBackground, _sender, sendResponse) => {
+      if (message.target !== "background") return true;
+
+      switch (message.type) {
         case "init":
           init();
           break;
@@ -46,7 +77,7 @@ export default defineBackground(() => {
         case "searchUser":
           // NOTE: ここを async で書くことができないので、渋々 then を使っている
           // https://developer.mozilla.org/ja/docs/Mozilla/Add-ons/WebExtensions/API/runtime/onMessage#listener
-          client.searchUser(request.content.username).then((users) => {
+          client.searchUser(message.content.username).then((users) => {
             if (users.length === 0) sendResponse({});
             const user = users[0];
             client.getUser(user.id).then((user) => {
@@ -59,10 +90,11 @@ export default defineBackground(() => {
           break;
 
         case "listenUser": {
-          const userId = request.content.userId;
+          const userId = message.content.userId;
           client.registerEvent((e) => {
             if ("err" in e) {
               browser.runtime.sendMessage<MessagePopup>({
+                target: "popup",
                 type: "notice",
                 content: {
                   level: "warn",
@@ -80,9 +112,11 @@ export default defineBackground(() => {
               e.content.travelingToLocation || e.content.location;
 
             if (friendLocation) {
+              ring();
               client.inviteMe(friendLocation);
 
               browser.runtime.sendMessage<MessagePopup>({
+                target: "popup",
                 type: "updateLocation",
                 content: {
                   location: friendLocation,
@@ -95,7 +129,7 @@ export default defineBackground(() => {
         }
 
         default:
-          return request satisfies never;
+          console.trace("Unknown message", message satisfies never);
       }
       return true;
     },

@@ -15,3 +15,9 @@ VRChat にて指定したユーザーのもとにいち早くジョインする�
 あくまで自分自身に対してのみアクションを起こすため、このツールそのものはトラブルを発生しません。
 
 用法用量を守って、楽しい VRChat ライフを！
+
+## Credit
+
+- 魔王魂様（https://maou.audio/）
+  - いずれも CC BY 4.0 に基づき、使用させていただきます https://maou.audio/rule/
+  - https://maou.audio/se_chime13/

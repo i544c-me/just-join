@@ -128,7 +128,7 @@ export default class VRChat {
     );
   }
 
-  registerEvent(func: (e: VRCEvent) => void) {
+  registerEvent(func: (_e: VRCEvent) => void) {
     this.prevController.abort();
     const newController = new AbortController();
     this.socket?.addEventListener(
