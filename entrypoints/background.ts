@@ -1,5 +1,5 @@
-import VRChat from "./lib/vrchat";
 import type { MessageBackground, MessagePopup, Notice } from "./lib/common";
+import VRChat from "./lib/vrchat";
 
 let client: VRChat;
 

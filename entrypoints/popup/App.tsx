@@ -1,6 +1,6 @@
 import { storage } from "wxt/storage";
-import type { VRCUser } from "../lib/vrchat";
 import type { MessageBackground, MessagePopup, Notice } from "../lib/common";
+import type { VRCUser } from "../lib/vrchat";
 import { Context } from "./Context";
 import Notification from "./Notification";
 
