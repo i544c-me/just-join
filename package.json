@@ -4,6 +4,7 @@
   "private": true,
   "version": "0.1.2",
   "type": "module",
+  "license": "MIT",
   "packageManager": "pnpm@9.14.4",
   "scripts": {
     "dev": "wxt",
